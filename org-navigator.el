@@ -1,11 +1,6 @@
 ;;; org-navigator 
 
-(setq org-navigator-fold-first t)
-(setq org-navigator-set-view t)
-(setq org-navigator-key-map evil-normal-state-map)
-(setq org-navigator-all-shortcuts '()) 
-(setq org-navigator-duplicates '()) 
-(setq org-navigator-config-file "~/dotfiles/emacs/org-navigator/shortcut-definitions.el") 
+(require 'org-refile)
 
 (setq org-navigator-file-to-prefix "<leader>J ")
 (setq org-navigator-go-to-prefix "<leader>j ")
@@ -14,7 +9,7 @@
 (setq org-navigator-clock-in-prefix "<leader>l ")
 
 (defun org-navigator-set-view ()
-  "Set the view and visibility after jumping to a heading."
+  "If org-navigator-set-view is non-nil, move point to the top of the screen and show the current subheading's children."
   (interactive)
   (if org-navigator-set-view
       (progn
@@ -25,23 +20,25 @@
         (org-show-children))))
 
 (defun org-navigator-composable-refile (FILE HEADLINE ACTION)
-  "Jump, file or clock in to HEADLINE.
+  "Jump, file or clock in to HEADLINE, located in FILE.
   How it behaves will depend on the value of ACTION.
   If ACTION is 'file-to, file the current heading to HEADLINE.
   If ACTION is 'go-to, go to HEADLINE.
   If ACTION is 'go-to-narrow, go to HEADLINE and narrow buffer to that headline.
   If ACTION is 'go-to-indirect, go to HEADLINE and open in a narrowed indirect buffer.
-  If ACTION is 'clock-in, clock in to HEADLINE and return to point."
+  If ACTION is 'clock-in, clock in to HEADLINE and return to point.
+  If org-navigator-fold-first is non-nil, fold the file first (so only one tree is unfolded at a time).
+  If org-navigator-set-view is non-nil, move point to the top of the screen and show the current subheading's children."
   (interactive)
   (let
       ((pos (save-excursion
 	      (find-file FILE)
-	      (org-find-exact-headline-in-buffer headline))))
+	      (org-find-exact-headline-in-buffer HEADLINE))))
     (cond  
      ((eq ACTION 'file-to) ;;File to
       (progn
         (let ((refile-arg nil)) 
-          (org-refile refile-arg nil (list HEADline FILE nil pos) nil)
+          (org-refile refile-arg nil (list HEADLINE FILE nil pos) nil)
           ;;If filing from a capture buffer, this line will finalize the capture buffer
           (if (string= "CAPTURE" (substring (buffer-name (current-buffer)) 0 7)) (org-capture-finalize)))))
      ((eq ACTION 'go-to) ;;Go to
@@ -70,7 +67,11 @@
                  (org-clock-in))))))))
 
 (defun org-navigator-composable-set-key (KEYPRESS TARGET FILENAME FILETO GOTO NARROW INDIRECT CLOCKIN)
-  "Programmatically set shortcuts with org-navigator-composable-refile."
+  "Define keyboard shortcuts for org-navigator-composable-refile to TARGET in FILENAME.
+  The shortcut keys will be made up of their respective prefix, with KEYPRESS appended.
+  For example: the shortcut for 'file-to will be set to \"org-navigator-file-to-prefix + KEYPRESS\".
+  Example: the shortcuts org-navigator-composable-refile function filing to TARGET
+  If FILETO, GOTO, NARROW, INDIRECT or CLOCKIN are nil, no keyboard shortcut will be set to that function."
   (let ((filekeypress (vconcat (kbd (concat org-navigator-file-to-prefix KEYPRESS))))
         (filecomment (concat "File To " TARGET))
         (jumpkeypress (vconcat (kbd (concat org-navigator-go-to-prefix KEYPRESS))))
@@ -93,6 +94,7 @@
         (define-key org-navigator-key-map clockinkeypress `(,clockcomment . (lambda () (interactive) (org-navigator-composable-refile ,FILENAME ,TARGET 'clock-in)))))))
 
 (defun org-navigator-set-from-property ()
+  "Test if JUMP-KEY property is set at point. If it is, add elisp code to org-navigator-config-file to define shortcuts to jump to this point, with org-navigator-composable-set-key."
   (let ((jump-key (cdr (assoc "JUMP-KEY" (org-entry-properties)))))
     (if jump-key
         (progn
@@ -113,7 +115,10 @@
   (org-set-property "JUMP-KEY" (read-string "Enter the key as a string:")))
 
 (defun org-navigator-set-all ()
-  "Go through all org-agenda-files and set jump shortcuts for any headings where JUMP-KEY property is set. "
+  "First, delete the contents of org-navigator-config-file (to clear any previous org-navigator shortcuts.
+  Next, go through all org-agenda-files and run org-navigator-set-from-property for each subheading. This will write functions to define shortcut keys for any subheading where JUMP-KEY is set in org-navigator-config-file.
+  Finally, evaluate org-navigator-config-file, to load all the shortcuts.
+  Note: if your agenda files are long, this could take some time. It is recommended to run this manually as needed, rather than as part of your config."
   (interactive)
   (write-region "" nil org-navigator-config-file)
   (org-map-entries 'org-navigator-set-from-property nil org-agenda-files)
