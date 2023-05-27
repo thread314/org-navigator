@@ -2,12 +2,6 @@
 
 (require 'org-refile)
 
-(setq org-navigator-file-to-prefix "<leader>J ")
-(setq org-navigator-go-to-prefix "<leader>j ")
-(setq org-navigator-open-and-narrow-prefix nil)
-(setq org-navigator-open-in-indirect-prefix "<leader>c ")
-(setq org-navigator-clock-in-prefix "<leader>l ")
-
 (defun org-navigator-set-view ()
   "If org-navigator-set-view is non-nil, move point to the top of the screen and show the current subheading's children."
   (interactive)
@@ -70,6 +64,7 @@
   "Define keyboard shortcuts for org-navigator-composable-refile to TARGET in FILENAME.
   The shortcut keys will be made up of their respective prefix, with KEYPRESS appended.
   For example: the shortcut for 'file-to will be set to \"org-navigator-file-to-prefix + KEYPRESS\".
+  If a particular prefix key is nil, no shortcuts will be set for that action.
   Example: the shortcuts org-navigator-composable-refile function filing to TARGET
   If FILETO, GOTO, NARROW, INDIRECT or CLOCKIN are nil, no keyboard shortcut will be set to that function."
   (let ((filekeypress (vconcat (kbd (concat org-navigator-file-to-prefix KEYPRESS))))
