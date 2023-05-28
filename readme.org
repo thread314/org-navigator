@@ -1,4 +1,77 @@
-* org-navigator: hyper-charged org-refile
+* Org-Navigator: Programmable, Composable Shortcuts For Org-Refile
 
+** Description
 
+I use org-refile to navigate and file things /all the time/. While it is functional, I have long craved something a little more flexible.
+
+So I've written a package that allows you to programmatically set composable shortcuts for org-refile.
+
+The user sets prefix keys that determine the action they want to take, combining these with destination suffix key(s) that determine the target subtree for the action.
+
+The user sets a prefix key for each of the following actions:
+
+- ~org-navigator-file-to-prefix~ will refile the current subheading to the target subtree.
+- ~org-navigator-go-to-prefix~ will move point to the target subtree.
+- ~org-navigator-open-and-narrow-prefix~ will move point to the target subtree and narrow the buffer.
+- ~org-navigator-open-in-indirect-prefix~ will move point to the target subtree and open it in an indirect buffer.
+- ~org-navigator-clock-in-prefix~ will clock into the target subtree and return to current point.
+
+You can set the destination suffix key manually in their config (with ~org-navigator-composable-set-key~) or automatically by properties with ~org-navigator-set-all~.
+
+** Examples
+
+Assuming you have set the suffix key for the subtree "Haggis Recipes" to "h" and you are using the default bindings below, you can:
+
+- Type ~C-c fh~ to file the current subtree to "Haggis Recipes" (instead of ~C-c C-w Haggis Recipes RET~).
+- Type ~C-c ih~ to go to "Haggis Recipes" and open it in an indirect buffer (instead of ~C-u C-c C-w Haggis Recipes RET C- C-x b~).
+
+** Setting destination suffix keys from inside org-mode
+:PROPERTIES:
+:ORG-NAV-KEY: g
+:END:
+
+Destination suffix key can be set manually in your config file (with ~org-navigator-composable-set-key~).
+
+Optionally, these can also be configured by setting the ~ORG-NAV-KEY~ property in the subtree itself (as in this subtree).
+
+Running ~org-navigator-set-all~ will
+- Iterate through all ~org-agenda-files~
+- For any subtrees where ~ORG-NAV-KEY~ is set will write a function to ~org-navigator-config-file~ to set the appropriate shortcuts.
+- Evaluate ~org-navigator-config-file~.
+
+This allows the user to view and set destination suffixes without leaving org-mode.
+
+Note: if your agenda files are long, ~org-navigator-set-all~ could take some time. It is recommended to run this manually as needed, rather than as part of your config.
+
+Including ~org-navigator-load-auto-config~ in your config will just evaluate the existing ~org-navigator-config-file~, rather than reconstructing it from scratch. ~org-navigator-set-all~ can be run manually when changes are made to ~ORG-NAV-KEY~ properties.
+
+** Installation
+
+- Clone into a folder of your choice (~/.emacs.d/git for example).
+- With use-package, you can configure it like this:
+
+#+BEGIN_SRC emacs-lisp 
+
+  (use-package org-navigator :load-path "git/org-navigator"
+    :config
+    (setq org-navigator-key-map org-mode-map
+          org-navigator-fold-first t
+          org-navigator-set-view t
+          org-navigator-all-shortcuts '()
+          org-navigator-duplicates '()
+          org-navigator-config-file "~/.emacs.d/git/org-navigator/shortcut-definitions.el"
+          org-navigator-file-to-prefix "C-c f"
+          org-navigator-go-to-prefix "C-c g"
+          org-navigator-open-and-narrow-prefix "C-c n"
+          org-navigator-open-in-indirect-prefix "C-c i"
+          org-navigator-clock-in-prefix "C-c c"))
+
+#+END_SRC 
+  
+** Tips
+
+- You can make this work well with evil and the leader key by setting ~org-navigator-key-map~ to ~evil-normal-state-map~.
+- Destination suffix keys can be made of multiple keys.
+- Works with modifiers (alt, shift, control, super).
+- ~org-navigator-set-view~ is a simple function to move the point to the first line and view direct children after jumping to a new heading. This can be disabled by setting ~org-navigator-set-view~ to nil.
 
