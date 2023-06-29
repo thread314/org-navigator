@@ -30,11 +30,15 @@
 	      (org-find-exact-headline-in-buffer HEADLINE))))
     (cond  
      ((eq ACTION 'file-to) ;;File to
+      (if (symbolp #'intuitive-tab-line-store-tabs)
+	  (intuitive-tab-line-store-tabs))
       (progn
         (let ((refile-arg nil)) 
           (org-refile refile-arg nil (list HEADLINE FILE nil pos) nil)
           ;;If filing from a capture buffer, this line will finalize the capture buffer
-          (if (string= "CAPTURE" (substring (buffer-name (current-buffer)) 0 7)) (org-capture-finalize)))))
+          (if (string= "CAPTURE" (substring (buffer-name (current-buffer)) 0 7)) (org-capture-finalize))))
+      (if (symbolp #'intuitive-tab-line-restore-tabs)
+      (intuitive-tab-line-restore-tabs)))
      ((eq ACTION 'go-to) ;;Go to
       (progn 
         (if org-navigator-fold-first (progn (find-file FILE)
@@ -55,10 +59,14 @@
         (org-tree-to-indirect-buffer '(4))
         (org-navigator-set-view)))
      ((eq ACTION 'clock-in) ;;Clock in, stay at current point
+      (if (symbolp #'intuitive-tab-line-store-tabs)
+	  (intuitive-tab-line-store-tabs))
       (let ((refile-arg '(4))) 
         (save-excursion 
           (progn (org-refile refile-arg nil (list HEADLINE FILE nil pos) nil)
-                 (org-clock-in))))))))
+                 (org-clock-in))))
+      (if (symbolp #'intuitive-tab-line-restore-tabs)
+	  (intuitive-tab-line-restore-tabs))))))
 
 (defun org-navigator-composable-set-key (KEYPRESS TARGET FILENAME FILETO GOTO NARROW INDIRECT CLOCKIN)
   "Define keyboard shortcuts for org-navigator-composable-refile to TARGET in FILENAME.
