@@ -36,9 +36,12 @@
         (let ((refile-arg nil)) 
           (org-refile refile-arg nil (list HEADLINE FILE nil pos) nil)
           ;;If filing from a capture buffer, this line will finalize the capture buffer
-          (if (string= "CAPTURE" (substring (buffer-name (current-buffer)) 0 7)) (org-capture-finalize))))
+	  (if (and (< 7 (length (buffer-name (current-buffer))))
+		   (string= "CAPTURE" (substring (buffer-name (current-buffer)) 0 7)))
+		   (org-capture-finalize))
+	  ))
       (if (symbolp #'intuitive-tab-line-restore-tabs)
-      (intuitive-tab-line-restore-tabs)))
+	  (intuitive-tab-line-restore-tabs)))
      ((eq ACTION 'go-to) ;;Go to
       (progn 
         (if org-navigator-fold-first (progn (find-file FILE)
