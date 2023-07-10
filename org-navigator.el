@@ -30,46 +30,46 @@
 	      (org-find-exact-headline-in-buffer HEADLINE))))
     (cond  
      ((eq ACTION 'file-to) ;;File to
-      (if (symbolp #'intuitive-tab-line-store-tabs)
-	  (intuitive-tab-line-store-tabs))
       (progn
+	(if (symbolp #'intuitive-tab-line-store-tabs)
+	    (intuitive-tab-line-store-tabs))
         (let ((refile-arg nil)) 
           (org-refile refile-arg nil (list HEADLINE FILE nil pos) nil)
           ;;If filing from a capture buffer, this line will finalize the capture buffer
 	  (if (and (< 7 (length (buffer-name (current-buffer))))
 		   (string= "CAPTURE" (substring (buffer-name (current-buffer)) 0 7)))
-		   (org-capture-finalize))
-	  ))
-      (if (symbolp #'intuitive-tab-line-restore-tabs)
-	  (intuitive-tab-line-restore-tabs)))
+	      (org-capture-finalize)))
+	(if (symbolp #'intuitive-tab-line-restore-tabs)
+	    (intuitive-tab-line-restore-tabs))))
      ((eq ACTION 'go-to) ;;Go to
-      (progn 
+      (progn
         (if org-navigator-fold-first (progn (find-file FILE)
 					    (org-overview)))
         (let ((refile-arg '(4))) 
           (org-refile refile-arg nil (list HEADLINE FILE nil pos) nil))
         (org-navigator-set-view)))
      ((eq ACTION 'go-to-narrow) ;;Go to and narrow
-      (progn 
+      (progn
         (let ((refile-arg '(4))) 
           (org-refile refile-arg nil (list HEADLINE FILE nil pos) nil))
         (org-narrow-to-subtree)
         (org-navigator-set-view)))
      ((eq ACTION 'go-to-indirect) ;;Go to in indirect buffer
-      (progn 
+      (progn
         (let ((refile-arg '(4))) 
           (org-refile refile-arg nil (list HEADLINE FILE nil pos) nil))
         (org-tree-to-indirect-buffer '(4))
         (org-navigator-set-view)))
      ((eq ACTION 'clock-in) ;;Clock in, stay at current point
-      (if (symbolp #'intuitive-tab-line-store-tabs)
-	  (intuitive-tab-line-store-tabs))
-      (let ((refile-arg '(4))) 
-        (save-excursion 
-          (progn (org-refile refile-arg nil (list HEADLINE FILE nil pos) nil)
-                 (org-clock-in))))
-      (if (symbolp #'intuitive-tab-line-restore-tabs)
-	  (intuitive-tab-line-restore-tabs))))))
+      (progn
+	(if (symbolp #'intuitive-tab-line-store-tabs)
+	    (intuitive-tab-line-store-tabs))
+	(let ((refile-arg '(4))) 
+          (save-excursion 
+            (progn (org-refile refile-arg nil (list HEADLINE FILE nil pos) nil)
+                   (org-clock-in))))
+	(if (symbolp #'intuitive-tab-line-restore-tabs)
+	    (intuitive-tab-line-restore-tabs)))))))
 
 (defun org-navigator-composable-set-key (KEYPRESS TARGET FILENAME FILETO GOTO NARROW INDIRECT CLOCKIN)
   "Define keyboard shortcuts for org-navigator-composable-refile to TARGET in FILENAME.
