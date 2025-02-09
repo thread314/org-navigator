@@ -11,7 +11,8 @@
         (if (buffer-base-buffer) 
             (org-cycle) 
           (org-cycle))
-        (org-show-children))))
+	(org-fold-show-children t)
+	(org-fold-show-entry t))))
 
 (defun org-navigator-composable-refile (FILE HEADLINE ACTION)
   "Jump, file or clock in to HEADLINE, located in FILE.
